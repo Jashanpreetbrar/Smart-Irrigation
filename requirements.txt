@@ -3,4 +3,5 @@ uvicorn
 pandas
 joblib
 pymongo
+dnspython
 statsmodels
