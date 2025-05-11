@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NPK Fertilizer Prediction</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f4f6f8;
+    }
+    h1 {
+      color: #2e86de;
+    }
+    label, input, button {
+      font-size: 1rem;
+      margin: 0.5rem 0;
+    }
+    #result {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background-color: #ffffff;
+      border-radius: 6px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
+    }
+    code {
+      font-family: monospace;
+      background-color: #f1f1f1;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>NPK Fertilizer Prediction</h1>
+
+  <label for="steps">Enter number of months to predict (1–36):</label><br>
+  <input type="number" id="steps" name="steps" min="1" max="36" value="5"><br><br>
+
+  <button onclick="getPrediction()">Get Prediction</button>
+
+  <div id="result"></div>
+
+  <script>
+    async function getPrediction() {
+      const steps = document.getElementById("steps").value;
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "Loading...";
+
+      try {
+        const response = await fetch(`/predict?steps=${steps}`);
+        const data = await response.json();
+
+        resultDiv.innerHTML = `
+          <h3>Prediction Results:</h3>
+          <p><strong>N:</strong> <code>${data.N_prediction.join(", ")}</code></p>
+          <p><strong>P:</strong> <code>${data.P_prediction.join(", ")}</code></p>
+          <p><strong>K:</strong> <code>${data.K_prediction.join(", ")}</code></p>
+        `;
+      } catch (error) {
+        console.error(error);
+        resultDiv.innerHTML = "<p style='color: red;'>Error fetching prediction.</p>";
+      }
+    }
+  </script>
+
+</body>
+</html>
