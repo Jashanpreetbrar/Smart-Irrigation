@@ -1,9 +1,12 @@
 from fastapi import FastAPI, Query
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.model import predict_npk
+from pathlib import Path
 
 app = FastAPI()
 
+# CORS for frontend JS to work
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -12,16 +15,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def root():
-    return {"message": "NPK Fertilizer Prediction API"}
+@app.get("/", response_class=HTMLResponse)
+def serve_ui():
+    html_path = Path("app/index.html")
+    if not html_path.exists():
+        return HTMLResponse("<h2>UI file not found</h2>", status_code=404)
+    return html_path.read_text()
 
 @app.get("/predict")
 def get_prediction(steps: int = Query(5, gt=0, le=36)):
-    print(f"[INFO] Received prediction request for {steps} steps")
     try:
         prediction = predict_npk(steps)
         return prediction
     except Exception as e:
-        print(f"[ERROR] {e}")
         return {"error": str(e)}
