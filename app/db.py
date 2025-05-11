@@ -1,9 +1,8 @@
 from pymongo import MongoClient
+import ssl
 import os
-
-MONGO_URI = os.environ.get("MONGO_URI")
-
-client = MongoClient(MONGO_URI)
+uri = os.environ.get("MONGO_URI")
+client = MongoClient(uri, ssl=True, ssl_cert_reqs=ssl.CERT_REQUIRED)
 db = client['fertilizer']
 collection = db['predictions']
 
