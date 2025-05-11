@@ -4,7 +4,7 @@ import os
 
 def forecast_series(series: pd.Series, steps: int):
     if series.isnull().any():
-        series = series.fillna(method='ffill')  # Fill missing values
+        series = series.fillna(method='ffill')
     model = SARIMAX(series, order=(1,1,1), seasonal_order=(1,1,1,12))
     model_fit = model.fit(disp=False)
     forecast = model_fit.forecast(steps=steps)
