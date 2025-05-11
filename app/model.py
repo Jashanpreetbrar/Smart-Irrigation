@@ -3,6 +3,8 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 import os
 
 def forecast_series(series: pd.Series, steps: int):
+    if series.isnull().any():
+        series = series.fillna(method='ffill')  # Fill missing values
     model = SARIMAX(series, order=(1,1,1), seasonal_order=(1,1,1,12))
     model_fit = model.fit(disp=False)
     forecast = model_fit.forecast(steps=steps)
@@ -10,12 +12,16 @@ def forecast_series(series: pd.Series, steps: int):
 
 def predict_npk(steps: int = 5):
     data_path = os.path.join("data", "wheat_data.csv")
+    if not os.path.exists(data_path):
+        raise FileNotFoundError(f"[ERROR] File not found: {data_path}")
+    
     print(f"[INFO] Loading data from {data_path}")
     df = pd.read_csv(data_path)
 
-    for col in ['N', 'P', 'K']:
+    required_cols = ['N', 'P', 'K']
+    for col in required_cols:
         if col not in df.columns:
-            raise ValueError(f"Missing '{col}' column in CSV")
+            raise ValueError(f"[ERROR] Missing required column '{col}' in CSV.")
 
     predictions = {
         "N_prediction": forecast_series(df['N'], steps),
@@ -23,5 +29,5 @@ def predict_npk(steps: int = 5):
         "K_prediction": forecast_series(df['K'], steps),
     }
 
-    print(f"[INFO] Predictions: {predictions}")
+    print(f"[INFO] Prediction successful for {steps} steps.")
     return predictions
