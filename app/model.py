@@ -2,19 +2,26 @@ import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 import os
 
+def forecast_series(series: pd.Series, steps: int):
+    model = SARIMAX(series, order=(1,1,1), seasonal_order=(1,1,1,12))
+    model_fit = model.fit(disp=False)
+    forecast = model_fit.forecast(steps=steps)
+    return forecast.tolist()
+
 def predict_npk(steps: int = 5):
     data_path = os.path.join("data", "wheat_data.csv")
     print(f"[INFO] Loading data from {data_path}")
     df = pd.read_csv(data_path)
 
-    if 'N' not in df.columns:
-        raise ValueError("Input CSV must contain 'N' column for nitrogen values")
+    for col in ['N', 'P', 'K']:
+        if col not in df.columns:
+            raise ValueError(f"Missing '{col}' column in CSV")
 
-    ts = df['N']
-    print(f"[INFO] Fitting SARIMA model...")
-    model = SARIMAX(ts, order=(1,1,1), seasonal_order=(1,1,1,12))
-    model_fit = model.fit(disp=False)
+    predictions = {
+        "N_prediction": forecast_series(df['N'], steps),
+        "P_prediction": forecast_series(df['P'], steps),
+        "K_prediction": forecast_series(df['K'], steps),
+    }
 
-    forecast = model_fit.forecast(steps=steps)
-    print(f"[INFO] Forecast generated: {forecast.tolist()}")
-    return forecast.tolist()
+    print(f"[INFO] Predictions: {predictions}")
+    return predictions
