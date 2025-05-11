@@ -1,13 +1,11 @@
-import os
 from pymongo import MongoClient
-from datetime import datetime
+import os
 
-client = MongoClient(os.getenv("MONGO_URI", "mongodb://localhost:27017/"))
-db = client["npk_predictions"]
-collection = db["predictions"]
+MONGO_URI = os.environ.get("MONGO_URI")
 
-def store_prediction(prediction):
-    collection.insert_one({
-        "timestamp": datetime.utcnow(),
-        "prediction": prediction
-    })
+client = MongoClient(MONGO_URI)
+db = client['fertilizer']
+collection = db['predictions']
+
+def store_prediction(data):
+    collection.insert_one({"prediction": data})
