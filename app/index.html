@@ -49,7 +49,8 @@
       resultDiv.innerHTML = "Loading...";
 
       try {
-        const response = await fetch(`/predict?steps=${steps}`);
+        const BASE_URL = "https://smart-irrigation-npk-fertilizer.onrender.com";  //actual backend
+        const response = await fetch(`${BASE_URL}/predict?steps=${steps}`);
         const data = await response.json();
 
         if (data.error) {
