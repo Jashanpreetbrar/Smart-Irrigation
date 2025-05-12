@@ -23,7 +23,7 @@ def get_prediction(nutrient: str):
     for feature in exog_features:
         future_exog[feature] = test_scaled[feature].iloc[-1]
 
-   forecast = model.get_prediction(start=future_dates[0],end=future_dates[-1],exog=future_exog,dynamic=False)
+    forecast = model.get_prediction(start=future_dates[0],end=future_dates[-1],exog=future_exog,dynamic=False)
     pred_mean = forecast.predicted_mean
     conf_int = forecast.conf_int()
 
