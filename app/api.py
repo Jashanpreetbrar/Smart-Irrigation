@@ -39,7 +39,7 @@ def get_prediction(nutrient: str):
             future_exog[feature] = test_scaled[feature].iloc[-1]
 
         # Step 6: Forecast
-        forecast = predict(model, future_exog, future_dates[0], future_dates[-1], dynamic=True)
+        forecast = model.get_forecast(steps=30, exog=future_exog)
         pred_mean_scaled = forecast.predicted_mean
         conf_int_scaled = forecast.conf_int()
 
