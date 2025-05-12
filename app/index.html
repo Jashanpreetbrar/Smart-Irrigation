@@ -49,8 +49,13 @@
       resultDiv.innerHTML = "Loading...";
 
       try {
-        const response = await fetch(`https://smart-irrigation-npk-fertilizer.onrender.com/predict?steps=${steps}`);
+        const response = await fetch(`/predict?steps=${steps}`);
         const data = await response.json();
+
+        if (data.error) {
+          resultDiv.innerHTML = `<p style='color: red;'>${data.error}</p>`;
+          return;
+        }
 
         resultDiv.innerHTML = `
           <h3>Prediction Results:</h3>
