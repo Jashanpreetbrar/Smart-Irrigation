@@ -32,43 +32,36 @@
   </style>
 </head>
 <body>
-
   <h1>NPK Fertilizer Prediction</h1>
-
   <label for="steps">Enter number of months to predict (1–36):</label><br>
   <input type="number" id="steps" name="steps" min="1" max="36" value="5"><br><br>
-
   <button onclick="getPrediction()">Get Prediction</button>
-
   <div id="result"></div>
-
   <script>
     async function getPrediction() {
       const steps = document.getElementById("steps").value;
       const resultDiv = document.getElementById("result");
-
+      resultDiv.innerHTML = "Loading...";
       try {
-        const BASE_URL = "https://smart-irrigation-npk-fertilizer.onrender.com";  //actual backend
-        const response = await fetch(`${BASE_URL}/predict?steps=${steps}`);
+        const response = await fetch(`/predict?steps=${steps}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
         const data = await response.json();
-
         if (data.error) {
-          resultDiv.innerHTML = `<p style='color: red;'>${data.error}</p>`;
+          resultDiv.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
           return;
         }
-
         resultDiv.innerHTML = `
           <h3>Prediction Results:</h3>
           <p><strong>N:</strong> <code>${data.N_prediction.join(", ")}</code></p>
           <p><strong>P:</strong> <code>${data.P_prediction.join(", ")}</code></p>
           <p><strong>K:</strong> <code>${data.K_prediction.join(", ")}</code></p>
         `;
-      } catch (error) {
-        console.error(error);
-        resultDiv.innerHTML = "<p style='color: red;'>Error fetching prediction.</p>";
+      } catch (err) {
+        resultDiv.innerHTML = `<p style="color:red;">Failed to fetch prediction. ${err.message}</p>`;
       }
     }
   </script>
-
 </body>
 </html>
