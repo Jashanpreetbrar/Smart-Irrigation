@@ -1,4 +1,4 @@
-fastapi
-uvicorn
-pandas
-statsmodels
+fastapi==0.110.0
+uvicorn==0.29.0
+pandas==2.2.1
+statsmodels==0.14.0
