@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 import pandas as pd
 import numpy as np
-from model.utils import load_and_preprocess, scale_features, train_model
+from app.preprocessing import load_and_preprocess, scale_features
+from app.model import train_model, predict
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
