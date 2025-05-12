@@ -1,13 +1,14 @@
-# NPK Fertilizer Prediction System
+# NPK Fertilizer Prediction API
 
-Predicts optimal NPK levels using time series forecasting. Offers a REST API and integrates with ESP32 display.
+This project provides a simple web-based interface to forecast Nitrogen (N), Phosphorus (P), and Potassium (K) values using SARIMA.
 
 ## Features
-- SARIMA time series model
-- FastAPI REST API
-- MongoDB logging
-- ESP32 integration
+- Predict NPK levels for up to 36 months
+- Interactive frontend
+- FastAPI backend
+- Deployable to Render
 
-## Usage
-- Run API: `uvicorn app.api:app --reload`
-- ESP32 fetches from `/predict?steps=5`
+## Setup
+```bash
+pip install -r requirements.txt
+uvicorn app.api:app --reload
