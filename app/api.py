@@ -15,36 +15,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to the NPK Fertilizer Predictor API"}
-
 @app.get("/predict/{nutrient}")
 def get_prediction(nutrient: str):
     try:
+        # Load and split the data
         df, exog_features = load_and_preprocess(target=nutrient)
         split_idx = int(len(df) * 0.8)
         train, test = df.iloc[:split_idx], df.iloc[split_idx:]
         train_scaled, test_scaled, scaler = scale_features(train, test, exog_features)
 
+        # Train SARIMAX model
         model = train_model(train_scaled, nutrient, exog_features)
 
-        # Future dates
+        # Generate future exogenous features
         future_dates = pd.date_range(df.index[-1] + pd.Timedelta(days=1), periods=30, freq='D')
         future_exog = pd.DataFrame(index=future_dates)
-
         for feature in exog_features:
             future_exog[feature] = test_scaled[feature].iloc[-1]
 
         # Forecast next 30 days
-        pred_mean = model.forecast(steps=30, exog=future_exog)
+        pred_values = model.forecast(steps=30, exog=future_exog)
+        pred_mean = pd.Series(pred_values, index=future_dates)
 
-        # Dummy confidence intervals (±5 kg/ha) - can be improved
+        # Dummy confidence intervals (±5 kg/ha)
         conf_int = pd.DataFrame({
             f'lower {nutrient}': pred_mean - 5,
             f'upper {nutrient}': pred_mean + 5
         }, index=future_dates)
 
+        # Construct response
         response = {
             "nutrient": nutrient,
             "predictions": [
