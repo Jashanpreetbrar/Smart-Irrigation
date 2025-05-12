@@ -49,9 +49,9 @@ def get_prediction(nutrient: str):
             "predictions": [
                 {
                     "date": str(date.date()),
-                    "predicted_value": round(float(pred_mean[date]), 2),
-                    "lower_ci": round(float(conf_int.loc[date][f'lower {nutrient}']), 2),
-                    "upper_ci": round(float(conf_int.loc[date][f'upper {nutrient}']), 2),
+                    "predicted_value": round(float(np.nan_to_num(pred_mean[date])), 2),
+                    "lower_ci": round(float(np.nan_to_num(conf_int.loc[date][f'lower {nutrient}'])), 2),
+                    "upper_ci": round(float(np.nan_to_num(conf_int.loc[date][f'upper {nutrient}'])), 2),
                 }
                 for date in future_dates
             ]
