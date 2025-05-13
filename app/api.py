@@ -1,4 +1,4 @@
-[9:32 pm, 12/5/2025] Jashan Brar: from fastapi import FastAPI
+from fastapi import FastAPI
 import pandas as pd
 import numpy as np
 from app.preprocessing import load_and_preprocess, scale_features
@@ -22,21 +22,42 @@ def get_prediction(nutrient: str):
         df, exog_features = load_and_preprocess(target=nutrient)
         split_idx = int(len(df) * 0.8)
         train, test = df.iloc[:split_idx], df.iloc[split_idx:]
-        train_scaled, test_scaled, scaler = scale_features(train, test, exog_fea…
-[9:33 pm, 12/5/2025] Jashan Brar: from statsmodels.tsa.statespace.sarimax import SARIMAX
+        train_scaled, test_scaled, scaler = scale_features(train, test, exog_features)
 
-def train_model(train, target, exog):
-    order = (1, 1, 1)
-    seasonal_order = (1, 1, 1, 7)
-    model = SARIMAX(
-        endog=train[target],
-        exog=train[exog],
-        order=order,
-        seasonal_order=seasonal_order,
-        enforce_stationarity=False,
-        enforce_invertibility=False
-    )
-    return model.fit(disp=False)
+        # Train SARIMAX model
+        model = train_model(train_scaled, nutrient, exog_features)
 
-def predict(model, exog, start_date, end_date, dynamic=False):
-    return model.get_prediction(start=start_date, end=end_date, exog=exog, dynamic=dynamic)
+        # Generate future exogenous features
+        future_dates = pd.date_range(df.index[-1] + pd.Timedelta(days=1), periods=30, freq='D')
+        future_exog = pd.DataFrame(index=future_dates)
+        for feature in exog_features:
+            future_exog[feature] = test_scaled[feature].iloc[-1]
+
+        # Forecast next 30 days
+        pred_values = model.forecast(steps=30, exog=future_exog)
+        pred_mean = pd.Series(pred_values, index=future_dates)
+
+        # Dummy confidence intervals (±5 kg/ha)
+        conf_int = pd.DataFrame({
+            f'lower {nutrient}': pred_mean - 5,
+            f'upper {nutrient}': pred_mean + 5
+        }, index=future_dates)
+
+        # Construct response
+        response = {
+            "nutrient": nutrient,
+            "predictions": [
+                {
+                    "date": str(date.date()),
+                    "predicted_value": round(float(np.nan_to_num(pred_mean[date])), 2),
+                    "lower_ci": round(float(np.nan_to_num(conf_int.loc[date][f'lower {nutrient}'])), 2),
+                    "upper_ci": round(float(np.nan_to_num(conf_int.loc[date][f'upper {nutrient}'])), 2),
+                }
+                for date in future_dates
+            ]
+        }
+
+        return response
+
+    except Exception as e:
+        return {"error": str(e)}
