@@ -48,12 +48,12 @@ def get_prediction(nutrient: str):
             "nutrient": nutrient,
             "predictions": [
                 {
-                    "date": str(date.date()),
+                    "day": f"Day {i+1}",
                     "predicted_value": round(float(np.nan_to_num(pred_mean[date])), 2),
                     "lower_ci": round(float(np.nan_to_num(conf_int.loc[date][f'lower {nutrient}'])), 2),
                     "upper_ci": round(float(np.nan_to_num(conf_int.loc[date][f'upper {nutrient}'])), 2),
                 }
-                for date in future_dates
+                for i, date in enumerate(future_dates)
             ]
         }
 
