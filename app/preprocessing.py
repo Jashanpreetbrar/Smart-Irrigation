@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
-DATA_FILE = 'data/wheat_data.csv'
+DATA_FILE = 'data/output.csv'
 EXOG_FEATURES = ['Soil_pH', 'Temperature', 'Humidity', 'Wind_Speed', 'Soil_Quality']
 
 def load_and_preprocess(target='N'):
