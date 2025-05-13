@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pandas
+statsmodels
+streamlit
+plotly
+requests
+python-multipart
