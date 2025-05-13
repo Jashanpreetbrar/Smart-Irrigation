@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+[9:32 pm, 12/5/2025] Jashan Brar: from fastapi import FastAPI
 import pandas as pd
 import numpy as np
 from app.preprocessing import load_and_preprocess, scale_features
@@ -18,62 +18,25 @@ app.add_middleware(
 @app.get("/predict/{nutrient}")
 def get_prediction(nutrient: str):
     try:
-        # Step 1: Load and preprocess data
+        # Load and split the data
         df, exog_features = load_and_preprocess(target=nutrient)
-
-        # Step 2: Train/test split
         split_idx = int(len(df) * 0.8)
         train, test = df.iloc[:split_idx], df.iloc[split_idx:]
+        train_scaled, test_scaled, scaler = scale_features(train, test, exog_fea…
+[9:33 pm, 12/5/2025] Jashan Brar: from statsmodels.tsa.statespace.sarimax import SARIMAX
 
-        # Step 3: Scale data
-        train_scaled, test_scaled, scaler = scale_features(train, test, exog_features)
+def train_model(train, target, exog):
+    order = (1, 1, 1)
+    seasonal_order = (1, 1, 1, 7)
+    model = SARIMAX(
+        endog=train[target],
+        exog=train[exog],
+        order=order,
+        seasonal_order=seasonal_order,
+        enforce_stationarity=False,
+        enforce_invertibility=False
+    )
+    return model.fit(disp=False)
 
-        # Step 4: Train model
-        model = train_model(train_scaled, nutrient, exog_features)
-
-        # Step 5: Prepare future exogenous features (copy last known values)
-        future_dates = pd.date_range(df.index[-1] + pd.Timedelta(days=1), periods=30, freq='D')
-        future_exog = pd.DataFrame(index=future_dates)
-
-        for feature in exog_features:
-            future_exog[feature] = test_scaled[feature].iloc[-1]
-
-        # Step 6: Forecast
-        forecast = model.get_forecast(steps=30, exog=future_exog)
-        pred_mean_scaled = forecast.predicted_mean
-        conf_int_scaled = forecast.conf_int()
-
-        # Step 7: Inverse transform the predictions
-        inverse_df = pd.DataFrame({nutrient: pred_mean_scaled})
-        inverse_df[exog_features] = test_scaled[exog_features].iloc[-1].values
-        inverse_transformed = scaler.inverse_transform(inverse_df)
-        pred_mean = inverse_transformed[:, 0]
-
-        lower_ci_scaled = conf_int_scaled[f'lower {nutrient}']
-        upper_ci_scaled = conf_int_scaled[f'upper {nutrient}']
-
-        lower_df = pd.DataFrame({nutrient: lower_ci_scaled})
-        lower_df[exog_features] = test_scaled[exog_features].iloc[-1].values
-        lower_transformed = scaler.inverse_transform(lower_df)[:, 0]
-
-        upper_df = pd.DataFrame({nutrient: upper_ci_scaled})
-        upper_df[exog_features] = test_scaled[exog_features].iloc[-1].values
-        upper_transformed = scaler.inverse_transform(upper_df)[:, 0]
-
-        # Step 8: Construct response
-        response = {
-            "nutrient": nutrient,
-            "predictions": [
-                {
-                    "date": str(date.date()),
-                    "predicted_value": float(pred),
-                    "lower_ci": float(lower),
-                    "upper_ci": float(upper),
-                }
-                for date, pred, lower, upper in zip(future_dates, pred_mean, lower_transformed, upper_transformed)
-            ]
-        }
-        return response
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+def predict(model, exog, start_date, end_date, dynamic=False):
+    return model.get_prediction(start=start_date, end=end_date, exog=exog, dynamic=dynamic)
