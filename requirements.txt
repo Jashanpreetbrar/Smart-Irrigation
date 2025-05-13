@@ -1,8 +1,9 @@
+# requirements.txt
 fastapi
 uvicorn
 pandas
-numpy
 statsmodels
-requests
-plotly
 streamlit
+plotly
+requests
+python-multipart
