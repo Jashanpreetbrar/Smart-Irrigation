@@ -22,33 +22,39 @@ def get_forecast():
     df['Date'] = pd.to_datetime(df['Date'])
     df.set_index('Date', inplace=True)
 
-    # Focus on Nitrogen (N) values
-    # Ensure data is monthly - resample to monthly frequency
-    monthly_df = df['N'].resample('MS').mean()
+    # Create forecasts for each nutrient (N, P, K)
+    nutrients = ['N', 'P', 'K']
+    all_forecasts = {}
     
-    # Handle any missing values
-    monthly_df = monthly_df.fillna(monthly_df.bfill())
+    for nutrient in nutrients:
+        # Ensure data is monthly - resample to monthly frequency
+        monthly_df = df[nutrient].resample('MS').mean()
+        
+        # Handle any missing values
+        monthly_df = monthly_df.fillna(monthly_df.bfill())
 
-    # Fit SARIMAX model (parameters can be tuned based on data analysis)
-    model = SARIMAX(monthly_df, 
-                   order=(1, 1, 1),  # (p,d,q) parameters
-                   seasonal_order=(1, 0, 1, 12))  # (P,D,Q,s) seasonal parameters
-    model_fit = model.fit(disp=False)
+        # Fit SARIMAX model (parameters can be tuned based on data analysis)
+        model = SARIMAX(monthly_df, 
+                       order=(1, 1, 1),  # (p,d,q) parameters
+                       seasonal_order=(1, 0, 1, 12))  # (P,D,Q,s) seasonal parameters
+        model_fit = model.fit(disp=False)
 
-    # Forecast next 6 months
-    forecast = model_fit.get_forecast(steps=6)
-    pred_mean = forecast.predicted_mean
-    conf_int = forecast.conf_int()
+        # Forecast next 6 months
+        forecast = model_fit.get_forecast(steps=6)
+        pred_mean = forecast.predicted_mean
+        conf_int = forecast.conf_int()
 
-    # Format the result
-    results = [
-        {
-            "month": f"Month {i+1}",  # Just use Month 1, Month 2, etc.
-            "predicted_value": round(pred_mean.iloc[i], 2),
-            "lower_ci": round(conf_int.iloc[i, 0], 2),
-            "upper_ci": round(conf_int.iloc[i, 1], 2),
-        }
-        for i in range(6)
-    ]
+        # Format the result for this nutrient
+        results = [
+            {
+                "month": f"Month {i+1}",  # Just use Month 1, Month 2, etc.
+                "predicted_value": round(pred_mean.iloc[i], 2),
+                "lower_ci": round(conf_int.iloc[i, 0], 2),
+                "upper_ci": round(conf_int.iloc[i, 1], 2),
+            }
+            for i in range(6)
+        ]
+        
+        all_forecasts[nutrient] = results
 
-    return {"forecast": results}
+    return all_forecasts
