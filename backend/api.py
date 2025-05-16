@@ -27,9 +27,13 @@ def get_forecast():
     all_forecasts = {}
     
     for nutrient in nutrients:
-        # Ensure data is monthly - resample to monthly frequency
-        monthly_df = df[nutrient].resample('MS').mean()
-        
+        # Aggregate by day (to remove multiple entries per day)
+        daily_avg = df[nutrient].groupby(df.index.date).mean()
+        daily_avg.index = pd.to_datetime(daily_avg.index)
+
+        # Resample to monthly frequency
+        monthly_df = daily_avg.resample('MS').mean()
+
         # Handle any missing values
         monthly_df = monthly_df.fillna(monthly_df.bfill())
 
